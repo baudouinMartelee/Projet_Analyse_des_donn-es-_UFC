@@ -1,30 +1,118 @@
 ---
-title: 'LSTAT2110 : Projet UFC'
-author: "BARTHELEMI Laurianne, MARTELEE Baudouin"
-date: "4/10/2020"
-output: html_document
+title: "Projet LSTAT2110(A) -- Analyse de données"
+author: BARTHELEMY Laurianne ,0000000, BIRF2M,
+        MARTELEE Baudouin , 43191400, DATS2M
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
 ---
 
+
+<!-- En haut, compliter/supprimer selon besoin. -->
+<!-- Voir les consignes pour le projet. -->
+
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = "")
 ```
 
-## R Markdown
+# Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+# Présentation des données, analyse descriptive
+
+## Description du dataset et motivation de l'utilisation de cette base de données
+
+Le dataset porte le nom de dataset UFC. L'UFC ou de son nom entier Ultimate Fighting Championship est la plus grande organisation au monde du sport Mixed Martial Art (MMA). Nous sommes tout les deux passionnés de sport de combats. En effet, nous faisons partie du même club de sport de combats.
+
+## Importation des données 
+
+```{r}
+#Import des données
+
+dataUFC <- read.csv('data.csv',header = TRUE,sep = ',', dec = '.')
+dim(dataUFC)
+#Visualiser les différentes colonnes
+colnames(dataUFC)
+
+#Selection du combattant BLUE
+data = dataUFC[1:62,c(1:76,144)]
+dim(data)
+colnames(data)
+#Selection des variables intéressantes
+dataFinal = data[,c("B_fighter","weight_class","date","B_current_win_streak","B_avg_BODY_att","B_avg_BODY_landed","B_avg_GROUND_att","B_avg_GROUND_landed","B_Reach_cms","B_Height_cms" ,"B_longest_win_streak","B_age")]
+head(dataFinal)
+dim(dataFinal)
+
+# to have a discrete variable delete women
+dataFinalWithoutWomen <- dataFinal[!grepl("^Women's.+", dataFinal$weight_class),]
+head(dataFinalWithoutWomen)
+dim(dataFinalWithoutWomen)
+
+dataCleaned <- dataFinalWithoutWomen[complete.cases(dataFinalWithoutWomen), ]
+
+#Mettre  les noms de combattants en noms de lignes
+dataCleaned
+dataCleaned = dataCleaned[!duplicated(dataCleaned$B_fighter), ]
+rownames(dataCleaned) = dataCleaned$B_fighter
+dataCleaned$B_fighter = NULL
+dataCleaned
 ```
 
-## Including Plots
+##analyse descriptive
 
-You can also embed plots, for example:
+```{r}
+install.packages("corrplot")
+library(corrplot)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+dataCleaned
+summary(dataCleaned)
+dataUFC.cor <- cor(dataCleaned[3:8])
+corrplot(dataUFC.cor)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# Analyse en composantes principales
+
+```{r}
+library(FactoMineR)
+continuousFeatures <- dataCleaned[3:8]
+res <- PCA(continuousFeatures, graph = FALSE, ncp = 6)
+barplot(res$eig[,"eigenvalue"],xlab = "Composantes",ylab = "Valeurs propres")
+abline(h = 1)
+
+lapply(res$var,round,3)
+
+#représentation des variables sur les 3 premiers composantes 
+round(sort(rowSums(res$var$cos2[,1:3])), digits = 3)
+
+# Visualisation 
+par(mfrow=c(2,2))
+plot.PCA(res, choix = "var", axes=c(1,2))
+plot.PCA(res, choix = "ind", axes=c(1,2))
+plot.PCA(res, choix = "var", axes=c(1,3))
+plot.PCA(res, choix = "ind", axes=c(1,3))
+```
+
+# Clustering 
+
+
+
+
+# Analyse des correspondances
+
+
+
+# Conclusions
+
+
+
+# Annexes
