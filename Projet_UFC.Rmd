@@ -25,40 +25,65 @@ knitr::opts_chunk$set(comment = "")
 
 # Introduction
 
-
+La violence est un excellent moyen d'extérioriser tout les tracas que nous gardons profondément au fond de nous. Cependant il ne faut pas qu'elle soit destructrice. ,il faut que celle-ci soit canalisée. On peut alors l'exprimer sous forme 
+Nous sommes tout les deux passionnés de sport de combats. En effet, nous faisons partie du même club de jiu jitsu brésilien. 
 
 # Présentation des données, analyse descriptive
 
 ## Description du dataset et motivation de l'utilisation de cette base de données
 
-Le dataset porte le nom de dataset UFC. L'UFC ou de son nom entier Ultimate Fighting Championship est la plus grande organisation au monde du sport Mixed Martial Art (MMA). Nous sommes tout les deux passionnés de sport de combats. En effet, nous faisons partie du même club de sport de combats.
+Le dataset porte le nom de dataset UFC. L'UFC ou de son nom entier Ultimate Fighting Championship est la plus grande organisation au monde du sport Mixed Martial Art (MMA).
+
+Cette base de données contient 5144 combats qui se sont déroulées entre 1993 et 2019. Elle comprends pour chaque combats, 2 combattants qui pour être distingués porte les noms de :  combattant Bleu (B_fighter) et un combattant Rouge (R_fighter). On a différentes informations à propos de l'organisation du combat tel que la date du combat, l'endroit où se fait celui-ci, la catégorie de poids , le nombre de rounds que comporte le combat, l'arbitre qui régulera le combats ou bien encore s'il s'agit d'un combat pour le titre de champion du monde. En plus de cela, on peut trouver, pour chaque combattant, des statistiques personelles physiologique ou encore en fonction des performances réalisées lors du combat. Pour une meilleure visualisation du dataset, nous allons importer les données.
 
 ## Importation des données 
 
 ```{r}
-#Import des données
-
+# Import des données à partir du fichier csv
 dataUFC <- read.csv('data.csv',header = TRUE,sep = ',', dec = '.')
+# Permet d'afficher les 2 dimensions du dataset, çad le nombre de combats avec le nombre de variables pour chaque combat.
 dim(dataUFC)
-#Visualiser les différentes colonnes
+# Affiche les 5 permières lignes du dataset
+head(dataUFC, n = 5)
+# Visualisation des différentes colonnes
 colnames(dataUFC)
+```
 
-#Selection du combattant BLUE
+## Selection des variables intéressantes.
+
+Comme on peut le constater, le nombre de variable est conséquent (145). Une des demandes de ce projet est l'analyse en composantes principales. L'ACP est basée sur de la visualisation. Donc avoir un trop grand nombre de variables est contre productif. Il va donc nous falloir restreindre le nombre de variables et sélectionner des variables intéressantes. 
+
+Tout d'abord, Nous allons nous concentrer sur l'analyse d'un combattant pour chaque combat, dans ce cas-ci, nous avons choisi de se concentrer sur le combattant Blue. Dans un premier temps, on sélectionne toutes les variables en rapport avec notre combattant Blue.
+
+```{r}
 data = dataUFC[1:62,c(1:76,144)]
 dim(data)
 colnames(data)
+```
+
+Cependant il nous reste encore 77 variables ce qui est un nombre trop conséquent pour la visualisation lors de l'ACP. Nous allons donc choisir les variables suivantes : nom du combattant Blue, la catégorie de poids, la séquence de victoires actuelles, la plus langue séquence de victoire, l'âge du combattant, la portée des bras en cm, la taille en cm,le nombre moyen d'attaque à la tête, le nombre moyen d'attaque à la tête atteint, pareil pour les attaques au corps et les attaques de takedowns.
+Pour info : un takedown est un mouvement de judo, jiujitsu brésilien ou de lutte qui permet de mettre un adversaire à terre.
+
 #Selection des variables intéressantes
-dataFinal = data[,c("B_fighter","weight_class","date","B_current_win_streak","B_avg_BODY_att","B_avg_BODY_landed","B_avg_GROUND_att","B_avg_GROUND_landed","B_Reach_cms","B_Height_cms" ,"B_longest_win_streak","B_age")]
+```{r}
+dataFinal = data[,c("B_fighter","weight_class","B_current_win_streak","B_avg_HEAD_att", "B_avg_HEAD_landed","B_avg_BODY_att","B_avg_BODY_landed","B_avg_GROUND_att","B_avg_GROUND_landed","B_Reach_cms","B_Height_cms" ,"B_longest_win_streak","B_age","B_win_by_Submission","B_win_by_KO.TKO","B_win_by_TKO_Doctor_Stoppage" )]
 head(dataFinal)
 dim(dataFinal)
+```
+
+Nous allons se concentrer sur les combattants masculins car d'une part les combattants masculins représentes 
 
 # to have a discrete variable delete women
+```{r}
 dataFinalWithoutWomen <- dataFinal[!grepl("^Women's.+", dataFinal$weight_class),]
 head(dataFinalWithoutWomen)
 dim(dataFinalWithoutWomen)
 
 dataCleaned <- dataFinalWithoutWomen[complete.cases(dataFinalWithoutWomen), ]
+```
 
+Pour pouvoir mettre en place l'analyse en composante principale, nous allons mettre le noms de combattans en noms de lignes.
+```{r}
 #Mettre  les noms de combattants en noms de lignes
 dataCleaned
 dataCleaned = dataCleaned[!duplicated(dataCleaned$B_fighter), ]
@@ -69,6 +94,7 @@ dataCleaned
 
 ##analyse descriptive
 
+Nous allons maintenant faire une analyse descriptive des données afin de pouvoir avoir une meilleure compréhension du dataset. Dans un premier temps, nous allons montrer une matrice de corrélation afin de voir les liens entre les différentes variables continues de notre analyse. 
 ```{r}
 install.packages("corrplot")
 library(corrplot)
