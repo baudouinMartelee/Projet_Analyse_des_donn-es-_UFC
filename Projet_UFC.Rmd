@@ -25,19 +25,46 @@ knitr::opts_chunk$set(comment = "")
 
 # Introduction
 
-La violence est un excellent moyen d'extérioriser tout les tracas que nous gardons profondément au fond de nous. Cependant il ne faut pas qu'elle soit destructrice. ,il faut que celle-ci soit canalisée. On peut alors l'exprimer sous forme 
+La violence est un excellent moyen d'extérioriser tout les tracas que nous gardons profondément au fond de nous. Cependant il ne faut pas qu'elle soit destructrice. ,il faut que celle-ci soit canalisée. On peut alors l'exprimer sous forme ...
 Nous sommes tout les deux passionnés de sport de combats. En effet, nous faisons partie du même club de jiu jitsu brésilien. 
 
 # Présentation des données, analyse descriptive
 
 ## Description du dataset et motivation de l'utilisation de cette base de données
 
-Le dataset porte le nom de dataset UFC. L'UFC ou de son nom entier Ultimate Fighting Championship est la plus grande organisation au monde du sport Mixed Martial Art (MMA).
+Le dataset porte le nom de dataset UFC. L'UFC ou de son nom entier l'Ultimate Fighting Championship est la plus grande organisation au monde de sport de combat Mixed Martial Art (MMA).
 
-Cette base de données contient 5144 combats qui se sont déroulées entre 1993 et 2019. Elle comprends pour chaque combats, 2 combattants qui pour être distingués porte les noms de :  combattant Bleu (B_fighter) et un combattant Rouge (R_fighter). On a différentes informations à propos de l'organisation du combat tel que la date du combat, l'endroit où se fait celui-ci, la catégorie de poids , le nombre de rounds que comporte le combat, l'arbitre qui régulera le combats ou bien encore s'il s'agit d'un combat pour le titre de champion du monde. En plus de cela, on peut trouver, pour chaque combattant, des statistiques personelles physiologique ou encore en fonction des performances réalisées lors du combat. Pour une meilleure visualisation du dataset, nous allons importer les données.
+Cette base de données contient 5144 combats qui se sont déroulées entre 1993 et 2019. Elle comprends pour chaque combats, 2 combattants qui pour être distingués porte les noms de :  combattant Bleu (B_fighter) et un combattant Rouge (R_fighter). On a différentes informations à propos de l'organisation du combat tel que la date du combat, l'endroit où se fait celui-ci, la catégorie de poids , le nombre de rounds que comporte le combat, l'arbitre qui régulera le combats ou bien encore s'il s'agit d'un combat pour le titre de champion du monde. En plus de cela, on peut trouver, pour chaque combattant, des statistiques personelles physiologique ou encore des performances réalisées lors du combat.
+
+Avant de commencer le projet, il faut mettre en avant comment se déroule un combat de mma. Le combat se déroule entre 2 combattants, celui-ci est régulé par un arbitre. Le combat se déroule dans une cage appelé octogane (car cage de 8 cotés). Le combat se déroule en 3 rounds de 5 mminutes et en 5 rounds de 5 minutes pour un combat d'un titre de champion du monde. Le mma est composé de 70 règles mais celles-ci ne sont pas importantes afin de comprendre ce projet. Cependant, il faut comprendre que le combat peut se dérouler en 3 phases à chaque moment. 
+
+1) Le striking (combats pied, poings, genoux, coud de coude) se pratique en position debout. Possibilité de mettre un adversaire KO.
+
+![Striking](./photo1.jpg)
+
+2) La takedown  (prises de lutte ou de judo) permet de déstabiliser l'adversaire et de soit l'amener au sol soit le maintenir au sol.
+
+![Takedown](./photo2.jpg)
+
+3) La submission (prise de jiujitsu brésilien ou luta livre) permet de garder son adversaire au sol et de le soumettre en utilisant par exemple des étranglements, des clefs ou encore des compressions musculaires.
+
+![Submission](./photo3.jpg)
+
+Il y a plusieurs manières de gagner un combat : 
+
+1) Gagner par arrêt du docteur 
+2) Gagner par KO technique (Soit l'adversaire est ko soit l'arbitre arrete le combat car combattant quasi ko).
+3) Gagner par soumission
+4) Gagner par décision (Il y a 2 types de décisions).
+  4.1) Gagner par décision unanime.
+  4.2) Gagner par split décision.
+  
+Si le combat ne se termine pas par un ko, une soumission ou un arret du docteur après les 3 ou 5 rounds, ce sont les 3 juges qui prennet la décision de nommer le vainqueur.
+
+
+Maintenant que tout est clarifié, nous pouvons commencer le projet en important les données.
 
 ## Importation des données 
-
 ```{r}
 # Import des données à partir du fichier csv
 dataUFC <- read.csv('data.csv',header = TRUE,sep = ',', dec = '.')
@@ -53,7 +80,7 @@ colnames(dataUFC)
 
 Comme on peut le constater, le nombre de variable est conséquent (145). Une des demandes de ce projet est l'analyse en composantes principales. L'ACP est basée sur de la visualisation. Donc avoir un trop grand nombre de variables est contre productif. Il va donc nous falloir restreindre le nombre de variables et sélectionner des variables intéressantes. 
 
-Tout d'abord, Nous allons nous concentrer sur l'analyse d'un combattant pour chaque combat, dans ce cas-ci, nous avons choisi de se concentrer sur le combattant Blue. Dans un premier temps, on sélectionne toutes les variables en rapport avec notre combattant Blue.
+Dans un premier temps, Nous allons nous concentrer sur l'analyse d'un combattant pour chaque combat, dans ce cas-ci, nous avons choisi de se concentrer sur le combattant Blue. Dans un premier temps, on sélectionne toutes les variables en rapport avec notre combattant Blue. L'objectif dans ce projet étant surtout de constater quelles compétences ou distinctions physique permet de remporter un combat. Et surtout voir les liens entre les différentes techniques de combats et comment celles-ci peuvent influencer le résultat du combat.
 
 ```{r}
 data = dataUFC[1:62,c(1:76,144)]
@@ -61,12 +88,14 @@ dim(data)
 colnames(data)
 ```
 
-Cependant il nous reste encore 77 variables ce qui est un nombre trop conséquent pour la visualisation lors de l'ACP. Nous allons donc choisir les variables suivantes : nom du combattant Blue, la catégorie de poids, la séquence de victoires actuelles, la plus langue séquence de victoire, l'âge du combattant, la portée des bras en cm, la taille en cm,le nombre moyen d'attaque à la tête, le nombre moyen d'attaque à la tête atteint, pareil pour les attaques au corps et les attaques de takedowns.
+#Selection des variables intéressantes
+
+Cependant il nous reste encore 77 variables ce qui est un nombre trop conséquent pour la visualisation lors de l'ACP. Nous allons donc choisir les variables suivantes : nom du combattant Blue, la catégorie de poids, la séquence de victoires actuelles, la plus longue séquence de victoire, l'âge du combattant, le nombre de victoire par soumission , le nombre de vicoitre par TKO (Technical KO), le nombre moyen d'attaque à la tête, le nombre moyen d'attaque à la tête atteint, pareil pour les attaques au corps et les attaques de takedowns.
+
 Pour info : un takedown est un mouvement de judo, jiujitsu brésilien ou de lutte qui permet de mettre un adversaire à terre.
 
-#Selection des variables intéressantes
 ```{r}
-dataFinal = data[,c("B_fighter","weight_class","B_current_win_streak","B_avg_HEAD_att", "B_avg_HEAD_landed","B_avg_BODY_att","B_avg_BODY_landed","B_avg_GROUND_att","B_avg_GROUND_landed","B_Reach_cms","B_Height_cms" ,"B_longest_win_streak","B_age","B_win_by_Submission","B_win_by_KO.TKO","B_win_by_TKO_Doctor_Stoppage" )]
+dataFinal = data[,c("B_fighter","weight_class","B_current_win_streak","B_longest_win_streak","B_age","B_win_by_Submission","B_win_by_KO.TKO","B_avg_HEAD_att", "B_avg_HEAD_landed","B_avg_BODY_att","B_avg_BODY_landed","B_avg_GROUND_att","B_avg_GROUND_landed")]
 head(dataFinal)
 dim(dataFinal)
 ```
@@ -90,18 +119,27 @@ dataCleaned = dataCleaned[!duplicated(dataCleaned$B_fighter), ]
 rownames(dataCleaned) = dataCleaned$B_fighter
 dataCleaned$B_fighter = NULL
 dataCleaned
+dim(dataCleaned)
 ```
+Maintenant notre dataset est prêt pour les différentes analyses. Il comporte 35 observations différentes et 12 variables.
 
-##analyse descriptive
+##Analyse descriptive
+
+###Statistique descriptive
 
 Nous allons maintenant faire une analyse descriptive des données afin de pouvoir avoir une meilleure compréhension du dataset. Dans un premier temps, nous allons montrer une matrice de corrélation afin de voir les liens entre les différentes variables continues de notre analyse. 
-```{r}
 install.packages("corrplot")
-library(corrplot)
-
+```{r}
 dataCleaned
 summary(dataCleaned)
-dataUFC.cor <- cor(dataCleaned[3:8])
+```
+
+### Matrice de corrélation
+Voici 2 manières de visualiser la corrélations entre les variables:
+```{r}
+library(corrplot)
+dataUFC.cor <- cor(dataCleaned[7:12])
+dataUFC.cor
 corrplot(dataUFC.cor)
 ```
 
@@ -111,26 +149,27 @@ corrplot(dataUFC.cor)
 
 ## PCA
 
-Pour pouvoir effectuer une analyse en composante principale, on va devoir utiliser le package FactoMineR. Nous devons sélectionner les variables continues de notre dataset final. Après cela, nous allons visualiser les valeurs propres en fonction des composantes afin de sélectionner quelle composantes nous devons choisir pour notre analyse.
+Pour pouvoir effectuer une analyse en composante principale, on va devoir utiliser le package FactoMineR. Nous devons sélectionner les variables continues de notre dataset final. Après cela, nous allons visualiser les valeurs propres en fonction des composantes afin de sélectionner quelles composantes nous devons choisir pour notre analyse.
 ```{r}
 library(FactoMineR)
-continuousFeatures <- dataCleaned[3:8]
+continuousFeatures <- dataCleaned[7:12]
 res <- PCA(continuousFeatures, graph = FALSE, ncp = 6)
 barplot(res$eig[,"eigenvalue"],xlab = "Composantes",ylab = "Valeurs propres")
 abline(h = 1)
 ```
 
-Par une règle générale, on sélectionne les composantes tq leurs valeurs propres  soient plus grande que 0.
+Par une règle générale, on sélectionne les composantes telles que leurs valeurs propres soient plus grande que 0. On prendra donc les 3 premières composantes pour l'ACP.
 ```{r}
 lapply(res$var,round,3)
 ```
 ## Représentation des variables sur les 3 premiers composantes 
+En prenant les 3 premières composantes, on aimerait voir la représentation des variables sur ces composantes afin d'évaluer la perte d'information.
 round(sort(rowSums(res$var$cos2[,1:3])), digits = 3)
 
 ## Visualisation 
-Pour pouvoir faire une conclusion sur l'analyse en composantes principales, il faut pouvoir visualiser les différents graphe tels que le plan factoriel ainsi que le cercle de corrélation. Nous avons vu cependant que 3 composantes factorielles avaient des valeurs propres >=1 , c'est-à-dire qu'il faut prendre en compte ces 3 composantes. La question à se poser est alors, comment visualiser le plan factoriel si on a 3 composantes. Il faut alors visualiser la chose sur 2 plans factoriels ainsi que 2 cercle de corrélation 
+Pour pouvoir faire une conclusion sur l'analyse en composantes principales, il faut pouvoir visualiser les différents graphe tels que le plan factoriel ainsi que le cercle de corrélation. Nous avons vu cependant que 3 composantes factorielles avaient des valeurs propres >=1 , c'est-à-dire qu'il faut prendre en compte ces 3 composantes. La question à se poser est alors, comment visualiser le plan factoriel si on a 3 composantes. Il faut alors visualiser la chose sur 2 plans factoriels ainsi que 2 cercle de corrélation.
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow=c(1,2))
 plot.PCA(res, choix = "var", axes=c(1,2))
 plot.PCA(res, choix = "ind", axes=c(1,2))
 plot.PCA(res, choix = "var", axes=c(1,3))
@@ -138,7 +177,7 @@ plot.PCA(res, choix = "ind", axes=c(1,3))
 ```
 
 ## Conclusion de l'analyse en composantes principales
-
+On peut constater que les variables sont plutôt bien représentées par les 2 premières composantes (49.76% + 37.47% = 87.23%). On ne perds donc pas beaucoup d'informations. Et on peut donc faire une interprétation fiable de la map factorielle des individus ainsi que sa map factorielle des individus associés.
 
 # Clustering 
 
