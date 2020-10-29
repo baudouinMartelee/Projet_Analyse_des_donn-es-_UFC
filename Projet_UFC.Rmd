@@ -80,13 +80,11 @@ colnames(dataUFC)
 
 Comme on peut le constater, le nombre de variable est conséquent (145). Une des demandes de ce projet est l'analyse en composantes principales. L'ACP est basée sur de la visualisation. Donc avoir un trop grand nombre de variables est contre productif. Il va donc nous falloir restreindre le nombre de variables et sélectionner des variables intéressantes. 
 
-Dans un premier temps, Nous allons nous concentrer sur l'analyse d'un combattant pour chaque combat, dans ce cas-ci, nous avons choisi de se concentrer sur le combattant Blue. Dans un premier temps, on sélectionne toutes les variables en rapport avec notre combattant Blue. L'objectif dans ce projet étant surtout de constater quelles compétences ou distinctions physique permet de remporter un combat. Et surtout voir les liens entre les différentes techniques de combats et comment celles-ci peuvent influencer le résultat du combat.
+Dans un premier temps, Nous allons nous concentrer sur l'analyse d'un combattant pour chaque combat, dans ce cas-ci, nous avons choisi de se concentrer sur le combattant Blue. Dans un premier temps, on sélectionne toutes les variables en rapport avec notre combattant Blue. L'objectif dans ce projet étant surtout de constater quelles compétences ou distinctions physiques permet de remporter un combat. Et surtout voir les liens entre les différentes techniques de combats et comment celles-ci peuvent influencer le résultat du combat.
 
 ```{r}
 dataUFC1 = dataUFC[1:1050,c(1:76,144)]
-dim(dataUFC1)
 colnames(dataUFC1)
-head(dataUFC1)
 ```
 
 #Selection des variables intéressantes
@@ -96,8 +94,6 @@ Pour que vous vérifiez que les données ainsi que les analyses soient cohérent
 ```{r}
 typeof(dataUFC1$title_bout)
 dataUFC2 <- dataUFC1[which(dataUFC1$title_bout ==  "True"),]
-head(dataUFC2)
-dim(dataUFC2)
 ```
 
 Cependant il nous reste encore 77 variables ce qui est un nombre trop conséquent pour la visualisation lors de l'ACP. Nous allons donc choisir les variables suivantes : nom du combattant Blue, la catégorie de poids, la séquence de victoires actuelles, la plus longue séquence de victoire, l'âge du combattant, le nombre de victoire par soumission , le nombre de vicoitre par TKO (Technical KO), le nombre moyen d'attaque à la tête, le nombre moyen d'attaque à la tête atteint, pareil pour les attaques au corps et les attaques de takedowns.
@@ -106,34 +102,25 @@ Pour info : un takedown est un mouvement de judo, jiujitsu brésilien ou de lutt
 
 ```{r}
 dataFinal = dataUFC2[,c("B_fighter","weight_class","B_current_win_streak","B_longest_win_streak","B_age","B_win_by_Submission","B_win_by_KO.TKO","B_avg_HEAD_landed","B_avg_LEG_landed","B_avg_GROUND_landed","B_avg_HEAD_att","B_avg_LEG_att","B_avg_GROUND_att")]
-head(dataFinal)
-dim(dataFinal)
 ```
 
 Nous allons se concentrer sur les combattants masculins car d'une part les combattants masculins représentes une grande majorité des combatset d'autres part cela est pour avoir n'avoir qu'une seule catégorie d'individus.
 
 ```{r}
 dataFinalWithoutWomen <- dataFinal[!grepl("^Women's.+", dataFinal$weight_class),]
-head(dataFinalWithoutWomen)
-dim(dataFinalWithoutWomen)
-
 dataCleaned <- dataFinalWithoutWomen[complete.cases(dataFinalWithoutWomen), ]
 ```
 
-
-
-Pour pouvoir mettre en place l'analyse en composante principale, nous allons mettre le noms de combattans en noms de lignes.
+Pour pouvoir mettre en place l'analyse en composante principale, nous allons mettre le noms de combattans en noms de lignes et nous allons en même temps supprimer les doublons de combattants car on ne veut pas prendre en compte plusieurs combats d'un même combattant pour cette analyse.
 
 ```{r}
 #Mettre  les noms de combattants en noms de lignes
-dataCleaned
 dataCleaned = dataCleaned[!duplicated(dataCleaned$B_fighter), ]
 rownames(dataCleaned) = dataCleaned$B_fighter
 dataCleaned$B_fighter = NULL
-dataCleaned
-dim(dataCleaned)
+head(dataCleaned)
 ```
-Maintenant notre dataset est prêt pour les différentes analyses. Il comporte 35 observations différentes et 14 variables.
+Maintenant notre dataset est prêt pour les différentes analyses. Il comporte 31 observations différentes et 12 variables.
 
 ##Analyse descriptive
 
@@ -142,8 +129,6 @@ Maintenant notre dataset est prêt pour les différentes analyses. Il comporte 3
 Nous allons maintenant faire une analyse descriptive des données afin de pouvoir avoir une meilleure compréhension du dataset. Dans un premier temps, nous allons montrer une matrice de corrélation afin de voir les liens entre les différentes variables continues de notre analyse. 
 install.packages("corrplot")
 ```{r}
-dataCleaned
-dim(dataCleaned)
 summary(dataCleaned)
 ```
 
@@ -157,7 +142,7 @@ dataUFC.cor
 corrplot(dataUFC.cor)
 ```
 
-On peut constater qu'une variable _att est fortement correlés à une variable _landed ce qui est logique car un combattant qui essaye d'effectuer un movement de combat (_att) a une chance de toucher son adversaire. On peut aussi remarquer que la corrélation est faible pour certaines variables si on prends les attaques de mise au sol par exemple (_att et _landed) on remarque que les corrélations avec les techniques de striking sont faibles. Ce qui est normal car quand un combattant tente un takedown, il se concentre moins à donner des coups à son adversaire car il doit le déstabiliser pour l'amener au sol.
+On peut constater qu'une variable _att est fortement correlés à une variable _landed ce qui est logique car un combattant qui essaye d'effectuer un movement de combat (_att) a une chance de toucher son adversaire. On peut aussi remarquer que la corrélation est faible pour certaines variables si on prends les attaques de mise au sol par exemple (_att et _landed) on remarque que les corrélations avec les techniques de striking sont faibles. Ce qui est normal car quand un combattant tente un takedown, il se concentre moins à donner des coups à son adversaire car il doit le déstabiliser pour l'amener au sol. Il n'y a cependant pas de corrélations négatives entre les variables analysées.
 
 # Analyse en composantes principales
 
