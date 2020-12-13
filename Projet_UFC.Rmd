@@ -177,6 +177,7 @@ Sur le 2eme plan factoriel, on peut encore améliorer notre interprétation à p
 
 # Clustering 
 
+L'objectif ici est de pouvoir classer dans différents groupesles observations. Ne pouvant pas savoir combien de classe on aura (non-supervisé), on va abandonner la méthode k-means clutering. On va donc se pencher sur la classification hiérarchique.
 La toute première étape afin de réaliser un Clustering des données est de mettre celle-ci à l'échelle.
 On met à l'échelle les données quantitatives.
 ```{r, echo=FALSE}
@@ -187,26 +188,32 @@ scaledQuantitativeVariables <- scale(quantitativeVariables)
 ```{r}
 head(scaledQuantitativeVariables)
 ```
-
-# KMeans clustering
-```{r}
-# On utilise 3 classes ici.
-
-classification <- kmeans(scaledQuantitativeVariables, centers = 3)
-classification$cluster
-
-BSS <- classification$betweenss
-TSS <- classification$totss
-qualityPartition = (BSS / TSS) * 100
-```
-
-```{r}
+Dans une classification hiérarchique le nombre de classes n'est pas donné à l'avance. On a vu dans le cadre de ce cours 4 types de de classification hiérarchique.
+```{r, echo=FALSE}
 #Classification Hierarchique
-# Distance euclidienne
+# Distance euclidienne 
 scaledData_euclidean <- dist(scaledQuantitativeVariables, method = "euclidean")
 
 # Classification hiérarchique saut minimum (single linkage)
 scaledData_single <- hclust(scaledData_euclidean, method = "single")
+
+# Dendrogramme
+plot(scaledData_single)
+rect.hclust(scaledData_single, k=5, border="red")
+# Les niveaux d'aggregation se trouvent dans la partie $height de l'objet rendu par hclust()
+barplot(tail(scaledData_single$height, n = 20),ylab = "aggregation level")
+
+# Classification hiérarchique saut minimum (complete linkage)
+scaledData_single <- hclust(scaledData_euclidean, method = "complete")
+
+# Dendrogramme
+plot(scaledData_single)
+rect.hclust(scaledData_single, k=5, border="red")
+# Les niveaux d'aggregation se trouvent dans la partie $height de l'objet rendu par hclust()
+barplot(tail(scaledData_single$height, n = 20),ylab = "aggregation level")
+
+# Classification hiérarchique saut minimum (average linkage)
+scaledData_single <- hclust(scaledData_euclidean, method = "average")
 
 # Dendrogramme
 plot(scaledData_single)
@@ -221,7 +228,7 @@ Algorithme de Ward
 
 ```{r}
 #Classification Hierarchique
-hclust_ward <- hclust(dist(scaledQuantitativeVariables)^2 / (2 * nrow(scaledQuantitativeVariables)), method = "ward.D")
+hclust_ward <- hclust(dist(scaledQuantitativeVariables)^2 / (2*nrow(scaledQuantitativeVariables)), method = "ward.D")
 
 plot(hclust_ward)
 hclust_ward$height
